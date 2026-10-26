@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>%ld files</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld Datei</string>
+			<key>other</key>
+			<string>%ld Dateien</string>
+		</dict>
+	</dict>
+	<key>%ld folders still being calculated …</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@ noch berechnet …</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld Ordner wird</string>
+			<key>other</key>
+			<string>%ld Ordner werden</string>
+		</dict>
+	</dict>
+	<key>%ld items</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld Element</string>
+			<key>other</key>
+			<string>%ld Elemente</string>
+		</dict>
+	</dict>
+	<key>%ld items copied</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@ kopiert</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld Element</string>
+			<key>other</key>
+			<string>%ld Elemente</string>
+		</dict>
+	</dict>
+	<key>Copying %ld items…</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Kopiere %#@n@…</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld Element</string>
+			<key>other</key>
+			<string>%ld Elemente</string>
+		</dict>
+	</dict>
+	<key>Moving %ld items…</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Verschiebe %#@n@…</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld Element</string>
+			<key>other</key>
+			<string>%ld Elemente</string>
+		</dict>
+	</dict>
+	<key>Selection (%ld items)</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Auswahl (%#@n@)</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld Eintrag</string>
+			<key>other</key>
+			<string>%ld Einträge</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

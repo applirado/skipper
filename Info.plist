@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <key>CFBundleDevelopmentRegion</key><string>en</string>
+  <key>CFBundleLocalizations</key><array><string>en</string><string>de</string></array>
   <key>CFBundleName</key><string>Skipper</string>
   <key>CFBundleDisplayName</key><string>Skipper</string>
   <key>CFBundleExecutable</key><string>Skipper</string>
@@ -18,10 +20,10 @@
     <key>LSItemContentTypes</key><array><string>public.folder</string></array>
     <key>LSHandlerRank</key><string>Alternate</string>
   </dict></array>
-  <key>NSDesktopFolderUsageDescription</key><string>Skipper zeigt die Dateien auf deinem Schreibtisch an.</string>
-  <key>NSDocumentsFolderUsageDescription</key><string>Skipper zeigt die Dateien in deinem Dokumente-Ordner an.</string>
-  <key>NSDownloadsFolderUsageDescription</key><string>Skipper zeigt die Dateien in deinem Downloads-Ordner an.</string>
-  <key>NSRemovableVolumesUsageDescription</key><string>Skipper zeigt Dateien auf externen Laufwerken an.</string>
-  <key>NSNetworkVolumesUsageDescription</key><string>Skipper zeigt Dateien auf Netzlaufwerken an.</string>
+  <key>NSDesktopFolderUsageDescription</key><string>Skipper shows the files on your Desktop.</string>
+  <key>NSDocumentsFolderUsageDescription</key><string>Skipper shows the files in your Documents folder.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Skipper shows the files in your Downloads folder.</string>
+  <key>NSRemovableVolumesUsageDescription</key><string>Skipper shows files on external drives.</string>
+  <key>NSNetworkVolumesUsageDescription</key><string>Skipper shows files on network drives.</string>
 </dict>
 </plist>

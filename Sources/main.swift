@@ -5,6 +5,13 @@ import Cocoa
 import Quartz
 import Carbon.HIToolbox
 
+/// Übersetzter Text. Schlüssel ist der englische Text, Übersetzungen liegen in Resources/<Sprache>.lproj
+/// (Mehrzahlformen in Localizable.stringsdict). Mit Argumenten dient der Text als Formatstring.
+func L(_ key: String, _ args: CVarArg...) -> String {
+    let s = NSLocalizedString(key, comment: "")
+    return args.isEmpty ? s : String(format: s, locale: .current, arguments: args)
+}
+
 // MARK: - Model
 
 final class FileItem {
@@ -29,7 +36,7 @@ final class FileItem {
         name = url.lastPathComponent
         size = Int64(v?.totalFileSize ?? v?.fileSize ?? 0)
         modified = v?.contentModificationDate ?? .distantPast
-        kind = v?.localizedTypeDescription ?? (isDirectory ? "Ordner" : "Datei")
+        kind = v?.localizedTypeDescription ?? (isDirectory ? L("Folder") : L("File"))
         hidden = (v?.isHidden ?? false) || name.hasPrefix(".")
     }
 }
@@ -120,7 +127,7 @@ enum FileOps {
         while true {
             let stem: String
             if copySuffix {
-                stem = i == 1 ? "\(base) - Kopie" : "\(base) - Kopie (\(i))"
+                stem = i == 1 ? L("%@ - Copy", base) : L("%@ - Copy (%ld)", base, i)
             } else {
                 stem = "\(base) (\(i + 1))"
             }
@@ -259,14 +266,14 @@ enum FileCategory: Int, CaseIterable {
 
     var title: String {
         switch self {
-        case .audio: return "Audio"
-        case .video: return "Video"
-        case .images: return "Bilder"
-        case .documents: return "Dokumente"
-        case .code: return "Code"
-        case .archives: return "Archive"
-        case .apps: return "Programme"
-        case .other: return "Sonstiges"
+        case .audio: return L("Audio")
+        case .video: return L("Video")
+        case .images: return L("Pictures")
+        case .documents: return L("Documents")
+        case .code: return L("Code")
+        case .archives: return L("Archives")
+        case .apps: return L("Applications")
+        case .other: return L("Other")
         }
     }
 
@@ -629,7 +636,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
     private let headerDot = NSImageView()
     /// 0 = linker, 1 = rechter Bereich
     var side = 0 { didSet { updateHeader(); applyPaneColor(); applySidebarVisibility() } }
-    var sideName: String { side == 1 ? "Rechter Bereich" : "Linker Bereich" }
+    var sideName: String { side == 1 ? L("Right pane") : L("Left pane") }
     private var sidebarDefaultsKey: String { side == 1 ? "sidebarHiddenRight" : "sidebarHiddenLeft" }
     var isActivePane = true { didSet { updateHeader() } }
     var explorerWindow: ExplorerWindow? { window?.windowController as? ExplorerWindow }
@@ -680,14 +687,14 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
 
     private func buildUI(_ root: NSView) {
         // Navigationsleiste
-        sidebarBtn = makeButton("sidebar.left", "Seitenleiste ein-/ausblenden (⌃⌘S)", #selector(toggleFavoritesSidebar(_:)))
-        backBtn = makeButton("chevron.left", "Zurück (Alt+← / Backspace)", #selector(goBack))
-        fwdBtn = makeButton("chevron.right", "Vorwärts (Alt+→)", #selector(goForward))
-        upBtn = makeButton("arrow.up", "Übergeordneter Ordner (Alt+↑)", #selector(goUp))
-        let refreshBtn = makeButton("arrow.clockwise", "Aktualisieren (F5)", #selector(reload))
-        let copyBtn = makeButton("doc.on.doc", "Pfad dieses Ordners kopieren", #selector(copyCurrentFolderPath(_:)))
+        sidebarBtn = makeButton("sidebar.left", L("Show/hide sidebar (⌃⌘S)"), #selector(toggleFavoritesSidebar(_:)))
+        backBtn = makeButton("chevron.left", L("Back (Alt+← / Backspace)"), #selector(goBack))
+        fwdBtn = makeButton("chevron.right", L("Forward (Alt+→)"), #selector(goForward))
+        upBtn = makeButton("arrow.up", L("Parent folder (Alt+↑)"), #selector(goUp))
+        let refreshBtn = makeButton("arrow.clockwise", L("Refresh (F5)"), #selector(reload))
+        let copyBtn = makeButton("doc.on.doc", L("Copy path of this folder"), #selector(copyCurrentFolderPath(_:)))
         termBtn = makeButton("terminal", "", #selector(openTerminal(_:)))
-        let splitBtn = makeButton("rectangle.split.2x1", "Zweiten Bereich ein-/ausblenden (⌥⌘S) – nur links ⌥⌘←, nur rechts ⌥⌘→", #selector(toggleSplitFromPane(_:)))
+        let splitBtn = makeButton("rectangle.split.2x1", L("Show/hide second pane (⌥⌘S) – left only ⌥⌘←, right only ⌥⌘→"), #selector(toggleSplitFromPane(_:)))
         termBtn.menu = TerminalChooser.shared.makeMenu()
         updateTerminalTip()
         NotificationCenter.default.addObserver(forName: .terminalChoiceChanged, object: nil, queue: .main) { [weak self] _ in
@@ -695,7 +702,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         }
 
         addressField.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
-        addressField.placeholderString = "Pfad eingeben und Enter drücken (Strg+L)"
+        addressField.placeholderString = L("Type a path and press Enter (Ctrl+L)")
         addressField.delegate = self
         addressField.lineBreakMode = .byTruncatingHead
         addressField.cell?.isScrollable = true
@@ -704,8 +711,8 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         addressField.setContentHuggingPriority(.defaultLow, for: .horizontal)
         addressField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-        searchField.placeholderString = "Durchsuchen – Enter: auch Inhalt & Unterordner"
-        searchField.toolTip = "Tippen filtert den aktuellen Ordner. Enter durchsucht mit Spotlight alle Unterordner, auch den Dateiinhalt. Esc beendet die Suche."
+        searchField.placeholderString = L("Search – Enter: also contents & subfolders")
+        searchField.toolTip = L("Typing filters the current folder. Enter searches all subfolders with Spotlight, including file contents. Esc ends the search.")
         searchField.delegate = self
         searchField.target = self
         searchField.action = #selector(searchChanged(_:))
@@ -755,8 +762,8 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         table.target = self
         table.doubleAction = #selector(doubleClicked)
         table.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
-        let cols: [(String, String, CGFloat)] = [("name", "Name", 380), ("date", "Änderungsdatum", 150),
-                                                 ("kind", "Typ", 170), ("size", "Größe", 90)]
+        let cols: [(String, String, CGFloat)] = [("name", L("Name"), 380), ("date", L("Date Modified"), 150),
+                                                 ("kind", L("Type"), 170), ("size", L("Size"), 90)]
         for (id, title, width) in cols {
             let c = NSTableColumn(identifier: .init(id))
             c.title = title
@@ -772,7 +779,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         // Anzahl Dateien (bei Ordnern inkl. Unterordnern, im Hintergrund berechnet)
         if table.tableColumn(withIdentifier: .init("files")) == nil {
             let fc = NSTableColumn(identifier: .init("files"))
-            fc.title = "Dateien"
+            fc.title = L("Files")
             fc.width = 80
             fc.minWidth = 50
             fc.headerCell.alignment = .right
@@ -781,7 +788,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         }
         // Nur während der Volltextsuche sichtbar: in welchem Unterordner der Treffer liegt
         let folderCol = NSTableColumn(identifier: .init("folder"))
-        folderCol.title = "Ordner"
+        folderCol.title = L("Folder")
         folderCol.width = 220
         folderCol.minWidth = 60
         folderCol.sortDescriptorPrototype = NSSortDescriptor(key: "folder", ascending: true)
@@ -915,10 +922,10 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
             guard let url = url, fm.fileExists(atPath: url.path) else { return }
             rows.append(.place(title: title, url: url, symbol: symbol, pinned: pinned))
         }
-        rows.append(.header("Favoriten"))
+        rows.append(.header(L("Favorites")))
         let favs = Favorites.shared.urls
         if favs.isEmpty {
-            rows.append(.hint("Ordner hierher ziehen oder ⌃⌘T"))
+            rows.append(.hint(L("Drag folders here or press ⌃⌘T")))
         } else {
             for u in favs {
                 let exists = fm.fileExists(atPath: u.path)
@@ -927,20 +934,20 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
             }
         }
 
-        rows.append(.header("Schnellzugriff"))
+        rows.append(.header(L("Quick Access")))
         let home = fm.homeDirectoryForCurrentUser
         func user(_ d: FileManager.SearchPathDirectory) -> URL? { fm.urls(for: d, in: .userDomainMask).first }
-        add("Benutzerordner", home, "house")
-        add("Schreibtisch", user(.desktopDirectory), "desktopcomputer")
-        add("Dokumente", user(.documentDirectory), "doc")
-        add("Downloads", user(.downloadsDirectory), "arrow.down.circle")
-        add("Bilder", user(.picturesDirectory), "photo")
-        add("Musik", user(.musicDirectory), "music.note")
-        add("Filme", user(.moviesDirectory), "film")
-        add("Programme", URL(fileURLWithPath: "/Applications"), "square.grid.2x2")
+        add(L("Home"), home, "house")
+        add(L("Desktop"), user(.desktopDirectory), "desktopcomputer")
+        add(L("Documents"), user(.documentDirectory), "doc")
+        add(L("Downloads"), user(.downloadsDirectory), "arrow.down.circle")
+        add(L("Pictures"), user(.picturesDirectory), "photo")
+        add(L("Music"), user(.musicDirectory), "music.note")
+        add(L("Movies"), user(.moviesDirectory), "film")
+        add(L("Applications"), URL(fileURLWithPath: "/Applications"), "square.grid.2x2")
         add("iCloud Drive", home.appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs"), "icloud")
 
-        rows.append(.header("Laufwerke"))
+        rows.append(.header(L("Drives")))
         let vols = fm.mountedVolumeURLs(includingResourceValuesForKeys: [.volumeLocalizedNameKey],
                                         options: [.skipHiddenVolumes]) ?? []
         for v in vols {
@@ -979,14 +986,14 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
     func navigate(to url: URL, addHistory: Bool = true, select: [URL] = []) {
         let u = url.standardizedFileURL
         guard FileOps.isDir(u) else {
-            showError("„\(u.path)“ ist kein Ordner oder existiert nicht.")
+            showError(L("“%@” is not a folder or does not exist.", u.path))
             return
         }
         let list: [FileItem]
         do {
             list = try loadItems(u)
         } catch {
-            showError("Auf „\(u.path)“ kann nicht zugegriffen werden.\n\(error.localizedDescription)")
+            showError(L("“%@” cannot be accessed.", u.path) + "\n" + error.localizedDescription)
             return
         }
         if addHistory && u.path != currentDir.path {
@@ -1158,7 +1165,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
             return item.kind
         case "folder":
             let rel = relativeFolder(item)
-            return rel.isEmpty ? "(hier)" : rel
+            return rel.isEmpty ? L("(here)") : rel
         case "files":
             guard item.isDirectory else { return "" }
             guard let st = FolderSizer.shared.stats(item.url) else { return "…" }
@@ -1293,20 +1300,19 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
             return p >= 1 ? "\(Int(p.rounded())) %" : "< 1 %"
         }
         var text = order.prefix(3).map { "\($0.title) \(pct($0))" }.joined(separator: " · ")
-        if text.isEmpty { text = pending > 0 ? "" : "leer" }
+        if text.isEmpty { text = pending > 0 ? "" : L("empty") }
         let totalText = sizeFormatter.string(fromByteCount: total)
-        text += (text.isEmpty ? "" : "  ") + (pending > 0 ? "≥ \(totalText) · rechnet …" : totalText)
-        if useSelection { text = "Auswahl: " + text }
+        text += (text.isEmpty ? "" : "  ") + (pending > 0 ? L("≥ %@ · calculating …", totalText) : totalText)
+        if useSelection { text = L("Selection: %@", text) }
         cockpitLabel.stringValue = text
 
-        var tip = useSelection ? "Auswahl (\(sel.count) Einträge)" : "Dieser Ordner inkl. Unterordner"
+        var tip = useSelection ? L("Selection (%ld items)", sel.count) : L("This folder including subfolders")
         tip += "\n"
         for c in order {
-            let cnt = countFormatter.string(from: NSNumber(value: counts[c.rawValue])) ?? "\(counts[c.rawValue])"
-            tip += "\n\(c.title): \(sizeFormatter.string(fromByteCount: bytes[c.rawValue])) (\(pct(c))), \(cnt) Datei\(counts[c.rawValue] == 1 ? "" : "en")"
+            tip += "\n\(c.title): \(sizeFormatter.string(fromByteCount: bytes[c.rawValue])) (\(pct(c))), " + L("%ld files", counts[c.rawValue])
         }
-        if pending > 0 { tip += "\n\n\(pending) Ordner werden noch berechnet …" }
-        tip += "\n\nEin-/ausblenden: ⌃⌘I"
+        if pending > 0 { tip += "\n\n" + L("%ld folders still being calculated …", pending) }
+        tip += "\n\n" + L("Show/hide: ⌃⌘I")
         cockpitLabel.toolTip = tip
         cockpitBar.toolTip = tip
     }
@@ -1343,20 +1349,21 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
 
     private func updateStatus() {
         guard busyCount == 0 else { return }
-        var s = "\(shown.count) Element\(shown.count == 1 ? "" : "e")"
+        var s = L("%ld items", shown.count)
         if let q = deepQuery {
             let n = shown.count
-            s = q.isGathering ? "Suche „\(deepTerm)“ … \(n) Treffer bisher"
-                : n == 0 ? "Keine Treffer für „\(deepTerm)“ (nur von Spotlight indexierte Dateien) – Esc beendet die Suche"
-                : "\(n)\(n >= maxDeepResults ? "+" : "") Treffer für „\(deepTerm)“ in Namen und Inhalt, inkl. Unterordner – Esc beendet die Suche"
+            s = q.isGathering ? L("Searching “%@” … found so far: %ld", deepTerm, n)
+                : n == 0 ? L("No results for “%@” (only files indexed by Spotlight) – Esc ends the search", deepTerm)
+                : L("Results for “%@” in names and content, including subfolders: %@ – Esc ends the search",
+                    deepTerm, L("%ld", n) + (n >= maxDeepResults ? "+" : ""))
         }
         let sel = selectedItems
         if !sel.isEmpty {
-            s += "   |   \(sel.count) ausgewählt"
+            s += "   |   " + L("%ld selected", sel.count)
             let bytes = sel.reduce(Int64(0)) { $0 + max(0, sizeValue($1)) }
             if bytes > 0 { s += "  (\(sizeFormatter.string(fromByteCount: bytes)))" }
         }
-        if FileClipboard.isCutActive { s += "   |   \(FileClipboard.cutURLs.count) ausgeschnitten" }
+        if FileClipboard.isCutActive { s += "   |   " + L("%ld cut", FileClipboard.cutURLs.count) }
         statusLabel.stringValue = s
         updateCockpit()
     }
@@ -1442,7 +1449,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         fitColumns()
         spinner.startAnimation(nil)
         applyFilterAndSort(select: [])
-        if !q.start() { stopDeepQuery(); showError("Die Spotlight-Suche konnte nicht gestartet werden.") }
+        if !q.start() { stopDeepQuery(); showError(L("The Spotlight search could not be started.")) }
     }
 
     /// Name enthält den Suchbegriff ODER der Dateiinhalt enthält alle Wörter (Wortanfang).
@@ -1530,7 +1537,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         showHidden.toggle()
         UserDefaults.standard.set(showHidden, forKey: "showHidden")
         applyFilterAndSort(select: nil)
-        flashStatus(showHidden ? "Versteckte Dateien werden angezeigt" : "Versteckte Dateien ausgeblendet")
+        flashStatus(showHidden ? L("Hidden files are shown") : L("Hidden files are hidden"))
     }
 
     private func goToAddress() {
@@ -1559,7 +1566,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
             }
         } else {
             addressField.stringValue = currentDir.path
-            showError("Der Pfad „\(text)“ wurde nicht gefunden.")
+            showError(L("The path “%@” was not found.", text))
         }
     }
 
@@ -1604,7 +1611,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
     }
 
     private func updateTerminalTip() {
-        termBtn?.toolTip = "In \(TerminalChooser.shared.effectiveName) öffnen (⌥⌘T) – Rechtsklick: Terminal-App wählen"
+        termBtn?.toolTip = L("Open in %@ (⌥⌘T) – right-click: choose terminal app", TerminalChooser.shared.effectiveName)
     }
 
     @objc func revealInFinder(_ sender: Any?) {
@@ -1618,7 +1625,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         let urls = selectedURLs
         guard !urls.isEmpty else { NSSound.beep(); return }
         FileClipboard.write(urls, cut: false)
-        flashStatus("\(urls.count) Element\(urls.count == 1 ? "" : "e") kopiert")
+        flashStatus(L("%ld items copied", urls.count))
     }
 
     @objc func cut(_ sender: Any?) {
@@ -1651,12 +1658,12 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         let names = selectedItems.map(\.name)
         guard !names.isEmpty else { return }
         setPasteboardString(names.joined(separator: "\n"))
-        flashStatus("Name kopiert: \(names.joined(separator: ", "))")
+        flashStatus(L("Name copied: %@", names.joined(separator: ", ")))
     }
 
     @objc func copyCurrentFolderPath(_ sender: Any?) {
         setPasteboardString(currentDir.path)
-        flashStatus("Pfad kopiert: \(currentDir.path)")
+        flashStatus(L("Path copied: %@", currentDir.path))
     }
 
     private func copyPaths(quoted: Bool) {
@@ -1664,7 +1671,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         if urls.isEmpty { urls = [currentDir] }
         let s = urls.map { quoted ? "\"\($0.path)\"" : $0.path }.joined(separator: "\n")
         setPasteboardString(s)
-        flashStatus(urls.count == 1 ? "Pfad kopiert: \(s)" : "\(urls.count) Pfade kopiert")
+        flashStatus(urls.count == 1 ? L("Path copied: %@", s) : L("%ld paths copied", urls.count))
     }
 
     private func setPasteboardString(_ s: String) {
@@ -1676,14 +1683,14 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
 
     private func askConflict(_ name: String, multiple: Bool) -> (ConflictChoice, Bool) {
         let a = NSAlert()
-        a.messageText = "Am Ziel ist bereits ein Element namens „\(name)“ vorhanden."
-        a.informativeText = "Möchtest du es ersetzen, beide behalten oder dieses Element überspringen?"
-        a.addButton(withTitle: "Ersetzen")
-        a.addButton(withTitle: "Beide behalten")
-        a.addButton(withTitle: "Überspringen")
+        a.messageText = L("An item named “%@” already exists at the destination.", name)
+        a.informativeText = L("Do you want to replace it, keep both, or skip this item?")
+        a.addButton(withTitle: L("Replace"))
+        a.addButton(withTitle: L("Keep Both"))
+        a.addButton(withTitle: L("Skip"))
         if multiple {
             a.showsSuppressionButton = true
-            a.suppressionButton?.title = "Für alle weiteren Konflikte übernehmen"
+            a.suppressionButton?.title = L("Apply to all remaining conflicts")
         }
         let r = a.runModal()
         let c: ConflictChoice = r == .alertFirstButtonReturn ? .replace : (r == .alertSecondButtonReturn ? .keepBoth : .skip)
@@ -1700,7 +1707,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
             let srcPath = FileOps.canonical(src)
             guard fm.fileExists(atPath: src.path) else { continue }
             if destPath == srcPath || destPath.hasPrefix(srcPath + "/") {
-                showError("„\(src.lastPathComponent)“ kann nicht in sich selbst kopiert oder verschoben werden.")
+                showError(L("“%@” cannot be copied or moved into itself.", src.lastPathComponent))
                 continue
             }
             let isDir = FileOps.isDir(src)
@@ -1734,8 +1741,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         }
         guard !jobs.isEmpty else { return }
 
-        let verb = move ? "Verschiebe" : "Kopiere"
-        setBusy(true, "\(verb) \(jobs.count) Element\(jobs.count == 1 ? "" : "e")…")
+        setBusy(true, move ? L("Moving %ld items…", jobs.count) : L("Copying %ld items…", jobs.count))
         let work = jobs
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let fm = FileManager()
@@ -1759,7 +1765,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
                 self.setBusy(false, nil)
                 FolderSizer.shared.invalidate(around: [dest] + (move ? sources : []))
                 if FileOps.canonical(self.currentDir) == destPath { self.reloadItems(select: done) } else { self.reloadItems(select: nil) }
-                if !errors.isEmpty { self.showError("Einige Elemente konnten nicht übertragen werden:\n" + errors.joined(separator: "\n")) }
+                if !errors.isEmpty { self.showError(L("Some items could not be transferred:") + "\n" + errors.joined(separator: "\n")) }
             }
         }
     }
@@ -1802,11 +1808,11 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         guard !urls.isEmpty else { return }
         let a = NSAlert()
         a.alertStyle = .critical
-        a.messageText = urls.count == 1 ? "„\(urls[0].lastPathComponent)“ endgültig löschen?"
-                                         : "\(urls.count) Elemente endgültig löschen?"
-        a.informativeText = "Das kann nicht rückgängig gemacht werden."
-        a.addButton(withTitle: "Endgültig löschen")
-        a.addButton(withTitle: "Abbrechen")
+        a.messageText = urls.count == 1 ? L("Permanently delete “%@”?", urls[0].lastPathComponent)
+                                         : L("Permanently delete %ld items?", urls.count)
+        a.informativeText = L("This cannot be undone.")
+        a.addButton(withTitle: L("Delete Permanently"))
+        a.addButton(withTitle: L("Cancel"))
         guard a.runModal() == .alertFirstButtonReturn else { return }
         var errors: [String] = []
         for u in urls {
@@ -1821,7 +1827,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
     @objc func newFolder(_ sender: Any?) {
         if isDeepSearch { endDeepSearch() }
         window?.makeFirstResponder(table)
-        let u = FileOps.unique(in: currentDir, name: "Neuer Ordner", isDir: true, copySuffix: false)
+        let u = FileOps.unique(in: currentDir, name: L("New Folder"), isDir: true, copySuffix: false)
         do {
             try FileManager.default.createDirectory(at: u, withIntermediateDirectories: false)
             searchField.stringValue = ""
@@ -1833,13 +1839,13 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
     @objc func newTextFile(_ sender: Any?) {
         if isDeepSearch { endDeepSearch() }
         window?.makeFirstResponder(table)
-        let u = FileOps.unique(in: currentDir, name: "Neues Textdokument.txt", isDir: false, copySuffix: false)
+        let u = FileOps.unique(in: currentDir, name: L("New Text Document.txt"), isDir: false, copySuffix: false)
         if FileManager.default.createFile(atPath: u.path, contents: Data()) {
             searchField.stringValue = ""
             reloadItems(select: [u])
             beginRename()
         } else {
-            showError("Datei konnte nicht erstellt werden.")
+            showError(L("The file could not be created."))
         }
     }
 
@@ -1881,13 +1887,13 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         }
         if newName.contains("/") || newName.contains(":") {
             tf.stringValue = old.lastPathComponent
-            showError("Dateinamen dürfen keine „/“ oder „:“ enthalten.")
+            showError(L("File names cannot contain “/” or “:”."))
             return
         }
         let dst = old.deletingLastPathComponent().appendingPathComponent(newName)
         if FileManager.default.fileExists(atPath: dst.path) && newName.lowercased() != old.lastPathComponent.lowercased() {
             tf.stringValue = old.lastPathComponent
-            showError("Es gibt bereits ein Element namens „\(newName)“.")
+            showError(L("An item named “%@” already exists.", newName))
             return
         }
         do {
@@ -1910,7 +1916,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
     /// ⌥⌘F: den aktuell angezeigten Ordner des aktiven Bereichs zu Favoriten.
     @objc func pinCurrent(_ sender: Any?) {
         if Favorites.shared.contains(currentDir) {
-            flashStatus("„\(currentDir.lastPathComponent)“ ist bereits ein Favorit")
+            flashStatus(L("“%@” is already a favorite", currentDir.lastPathComponent))
         } else {
             pin([currentDir])
         }
@@ -1918,8 +1924,8 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
 
     private func pin(_ urls: [URL]) {
         Favorites.shared.add(urls)
-        flashStatus(urls.count == 1 ? "„\(urls[0].lastPathComponent)“ zu Favoriten hinzugefügt"
-                                    : "\(urls.count) Ordner zu Favoriten hinzugefügt")
+        flashStatus(urls.count == 1 ? L("“%@” added to favorites", urls[0].lastPathComponent)
+                                    : L("%ld folders added to favorites", urls.count))
     }
 
     /// ⌃⌘T: markierte Ordner – oder, wenn keiner markiert ist, den aktuellen Ordner – zu Favoriten.
@@ -1941,7 +1947,7 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
     @objc func sidebarCopyPath(_ sender: NSMenuItem) {
         if let u = sender.representedObject as? URL {
             setPasteboardString(u.path)
-            flashStatus("Pfad kopiert: \(u.path)")
+            flashStatus(L("Path copied: %@", u.path))
         }
     }
 
@@ -2066,8 +2072,8 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
             tf.stringValue = cellText("size", item)
             if item.isDirectory {
                 let st = FolderSizer.shared.stats(item.url)
-                tf.toolTip = st == nil ? "Wird im Hintergrund berechnet"
-                    : (st!.partial ? "Einige Unterordner waren nicht lesbar – mindestens so groß." : nil)
+                tf.toolTip = st == nil ? L("Being calculated in the background")
+                    : (st!.partial ? L("Some subfolders were not readable – at least this large.") : nil)
             } else {
                 tf.toolTip = nil
             }
@@ -2318,29 +2324,29 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
         let sep = { menu.addItem(.separator()) }
 
         if sel.isEmpty {
-            add("Einfügen", #selector(paste(_:)), "v", [.control])
+            add(L("Paste"), #selector(paste(_:)), "v", [.control])
             sep()
-            add("Neuer Ordner", #selector(newFolder(_:)), "n", [.control, .shift])
-            add("Neue Textdatei", #selector(newTextFile(_:)))
+            add(L("New Folder"), #selector(newFolder(_:)), "n", [.control, .shift])
+            add(L("New Text File"), #selector(newTextFile(_:)))
             sep()
-            add("Pfad dieses Ordners kopieren", #selector(copyCurrentFolderPath(_:)), "c", [.control, .shift])
-            add("Im Terminal öffnen", #selector(openTerminal(_:)))
-            add("Im Finder zeigen", #selector(revealInFinder(_:)))
-            add("Diesen Ordner zu Favoriten hinzufügen", #selector(pinCurrent(_:)), "f", [.command, .option])
+            add(L("Copy path of this folder"), #selector(copyCurrentFolderPath(_:)), "c", [.control, .shift])
+            add(L("Open in Terminal"), #selector(openTerminal(_:)))
+            add(L("Show in Finder"), #selector(revealInFinder(_:)))
+            add(L("Add This Folder to Favorites"), #selector(pinCurrent(_:)), "f", [.command, .option])
             sep()
-            let h = add("Versteckte Dateien anzeigen", #selector(toggleHidden(_:)), "h", [.control])
+            let h = add(L("Show Hidden Files"), #selector(toggleHidden(_:)), "h", [.control])
             h.state = showHidden ? .on : .off
-            add("Aktualisieren", #selector(reload))
+            add(L("Refresh"), #selector(reload))
             return
         }
 
-        add("Öffnen", #selector(openSelection))
+        add(L("Open"), #selector(openSelection))
         let single = sel.count == 1 ? sel[0] : nil
-        if isDeepSearch, single != nil { add("Speicherort öffnen", #selector(openContainingFolder(_:))) }
+        if isDeepSearch, single != nil { add(L("Open Enclosing Folder"), #selector(openContainingFolder(_:))) }
         if let it = single, it.isFolder {
-            add("In neuem Tab öffnen", #selector(openSelectedInNewTab(_:)))
-            add("In neuem Fenster öffnen", #selector(openSelectedInNewWindow(_:)))
-            add("Im Terminal öffnen", #selector(openTerminal(_:)))
+            add(L("Open in New Tab"), #selector(openSelectedInNewTab(_:)))
+            add(L("Open in New Window"), #selector(openSelectedInNewWindow(_:)))
+            add(L("Open in Terminal"), #selector(openTerminal(_:)))
         }
         if let it = single, !it.isFolder {
             let apps = NSWorkspace.shared.urlsForApplications(toOpen: it.url)
@@ -2356,45 +2362,45 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
                     mi.image = ic
                     sub.addItem(mi)
                 }
-                let holder = NSMenuItem(title: "Öffnen mit", action: nil, keyEquivalent: "")
+                let holder = NSMenuItem(title: L("Open With"), action: nil, keyEquivalent: "")
                 holder.submenu = sub
                 menu.addItem(holder)
             }
         }
         sep()
-        add("Ausschneiden", #selector(cut(_:)), "x", [.control])
-        add("Kopieren", #selector(copy(_:)), "c", [.control])
+        add(L("Cut"), #selector(cut(_:)), "x", [.control])
+        add(L("Copy"), #selector(copy(_:)), "c", [.control])
         if let it = single, it.isFolder, FileClipboard.hasFiles {
-            add("In diesen Ordner einfügen", #selector(pasteIntoSelectedFolder(_:)))
+            add(L("Paste into This Folder"), #selector(pasteIntoSelectedFolder(_:)))
         }
         sep()
-        add("Pfad kopieren", #selector(copyPath(_:)), "c", [.control, .shift])
-        add("Als Pfad kopieren (mit Anführungszeichen)", #selector(copyPathQuoted(_:)))
-        add("Name kopieren", #selector(copyName(_:)))
+        add(L("Copy Path"), #selector(copyPath(_:)), "c", [.control, .shift])
+        add(L("Copy as Path (with Quotes)"), #selector(copyPathQuoted(_:)))
+        add(L("Copy Name"), #selector(copyName(_:)))
         sep()
-        if single != nil { add("Umbenennen", #selector(beginRename)) }
-        add("In den Papierkorb legen", #selector(trashSelection))
+        if single != nil { add(L("Rename"), #selector(beginRename)) }
+        add(L("Move to Trash"), #selector(trashSelection))
         sep()
-        add("Im Finder zeigen", #selector(revealInFinder(_:)))
-        if sel.contains(where: { $0.isFolder }) { add("Zu Favoriten hinzufügen", #selector(pinSelected(_:)), "t", [.control, .command]) }
+        add(L("Show in Finder"), #selector(revealInFinder(_:)))
+        if sel.contains(where: { $0.isFolder }) { add(L("Add to Favorites"), #selector(pinSelected(_:)), "t", [.control, .command]) }
     }
 
     private func buildSidebarMenu(_ menu: NSMenu) {
         let row = sidebar.clickedRow
         guard row >= 0, case let .place(_, url, _, pinned) = sidebarRows[row] else { return }
-        let open = NSMenuItem(title: "In neuem Tab öffnen", action: #selector(sidebarOpenInNewTab(_:)), keyEquivalent: "")
+        let open = NSMenuItem(title: L("Open in New Tab"), action: #selector(sidebarOpenInNewTab(_:)), keyEquivalent: "")
         open.target = self; open.representedObject = url
         menu.addItem(open)
-        let cp = NSMenuItem(title: "Pfad kopieren", action: #selector(sidebarCopyPath(_:)), keyEquivalent: "")
+        let cp = NSMenuItem(title: L("Copy Path"), action: #selector(sidebarCopyPath(_:)), keyEquivalent: "")
         cp.target = self; cp.representedObject = url
         menu.addItem(cp)
         if !pinned, !Favorites.shared.contains(url) {
-            let fav = NSMenuItem(title: "Zu Favoriten hinzufügen", action: #selector(sidebarAddFavorite(_:)), keyEquivalent: "")
+            let fav = NSMenuItem(title: L("Add to Favorites"), action: #selector(sidebarAddFavorite(_:)), keyEquivalent: "")
             fav.target = self; fav.representedObject = url
             menu.addItem(fav)
         }
         if pinned {
-            let un = NSMenuItem(title: "Aus Favoriten entfernen", action: #selector(unpin(_:)), keyEquivalent: "")
+            let un = NSMenuItem(title: L("Remove from Favorites"), action: #selector(unpin(_:)), keyEquivalent: "")
             un.target = self; un.representedObject = url
             menu.addItem(un)
         }
@@ -2791,7 +2797,7 @@ final class TerminalChooser: NSObject, NSMenuDelegate {
     // MARK: Menü
 
     func makeMenu() -> NSMenu {
-        let m = NSMenu(title: "Terminal-App")
+        let m = NSMenu(title: L("Terminal App"))
         m.delegate = self
         menuNeedsUpdate(m)
         return m
@@ -2811,14 +2817,14 @@ final class TerminalChooser: NSObject, NSMenuDelegate {
             }
             menu.addItem(i)
         }
-        add("Automatisch (iTerm2, sonst Terminal)", nil)
+        add(L("Automatic (iTerm2, otherwise Terminal)"), nil)
         menu.addItem(.separator())
         for k in known { if let url = appURL(k.id) { add(k.name, k.id, icon: url) } }
         if let id = preferredID, !known.contains(where: { $0.id == id }), let url = appURL(id) {
             add(displayName(id), id, icon: url)
         }
         menu.addItem(.separator())
-        let other = NSMenuItem(title: "Andere App wählen…", action: #selector(chooseOther(_:)), keyEquivalent: "")
+        let other = NSMenuItem(title: L("Choose Other App…"), action: #selector(chooseOther(_:)), keyEquivalent: "")
         other.target = self
         menu.addItem(other)
     }
@@ -2830,8 +2836,8 @@ final class TerminalChooser: NSObject, NSMenuDelegate {
 
     @objc private func chooseOther(_ sender: Any?) {
         let panel = NSOpenPanel()
-        panel.title = "Terminal-App wählen"
-        panel.prompt = "Wählen"
+        panel.title = L("Choose Terminal App")
+        panel.prompt = L("Choose")
         panel.allowedContentTypes = [.application]
         panel.directoryURL = URL(fileURLWithPath: "/Applications")
         guard panel.runModal() == .OK, let url = panel.url else { return }
@@ -2899,15 +2905,15 @@ final class SettingsWindowController: NSWindowController {
     private let modePopup = NSPopUpButton()
     private let panesPopup = NSPopUpButton()
     private let modeTitles: [(StartPrefs.WindowMode, String)] = [
-        (.normal, "Normales Fenster"), (.maximized, "Maximiert (ganzer Bildschirm, mit Menüleiste)"),
-        (.fullscreen, "Vollbild")]
+        (.normal, L("Normal window")), (.maximized, L("Maximized (whole screen, with menu bar)")),
+        (.fullscreen, L("Full screen"))]
     private let panesTitles: [(StartPrefs.Panes, String)] = [
-        (.left, "Nur linker Bereich"), (.both, "Beide Bereiche (links und rechts)")]
+        (.left, L("Left Pane Only")), (.both, L("Both panes (left and right)"))]
 
     private init() {
         let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 170),
                          styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        w.title = "Einstellungen"
+        w.title = L("Settings")
         w.isReleasedWhenClosed = false
         super.init(window: w)
 
@@ -2916,15 +2922,15 @@ final class SettingsWindowController: NSWindowController {
         modePopup.target = self; modePopup.action = #selector(changed(_:))
         panesPopup.target = self; panesPopup.action = #selector(changed(_:))
 
-        let heading = NSTextField(labelWithString: "Beim Start")
+        let heading = NSTextField(labelWithString: L("At Launch"))
         heading.font = .boldSystemFont(ofSize: 13)
-        let note = NSTextField(labelWithString: "Gilt, wenn ein Fenster geöffnet wird und noch kein anderes offen ist\n(Programmstart, Klick aufs Dock-Symbol, ⌥⌘E).")
+        let note = NSTextField(labelWithString: L("Applies when a window opens and no other one is open yet\n(app launch, click on the Dock icon, ⌥⌘E)."))
         note.font = .systemFont(ofSize: 11)
         note.textColor = .secondaryLabelColor
 
         let grid = NSGridView(views: [
-            [NSTextField(labelWithString: "Fenster:"), modePopup],
-            [NSTextField(labelWithString: "Bereiche:"), panesPopup],
+            [NSTextField(labelWithString: L("Window:")), modePopup],
+            [NSTextField(labelWithString: L("Panes:")), panesPopup],
         ])
         grid.rowSpacing = 10
         grid.columnSpacing = 10
@@ -2932,7 +2938,7 @@ final class SettingsWindowController: NSWindowController {
         grid.rowAlignment = .firstBaseline
 
         // Farben je Bereich
-        let colorHeading = NSTextField(labelWithString: "Hintergrundfarbe")
+        let colorHeading = NSTextField(labelWithString: L("Background Color"))
         colorHeading.font = .boldSystemFont(ofSize: 13)
         for (i, well) in colorWells.enumerated() {
             well.target = self
@@ -2943,21 +2949,21 @@ final class SettingsWindowController: NSWindowController {
             well.heightAnchor.constraint(equalToConstant: 24).isActive = true
         }
         func resetButton(_ side: Int) -> NSButton {
-            let b = NSButton(title: "Standard", target: self, action: #selector(resetColor(_:)))
+            let b = NSButton(title: L("Default"), target: self, action: #selector(resetColor(_:)))
             b.tag = side
             b.bezelStyle = .rounded
             return b
         }
         let colorGrid = NSGridView(views: [
-            [NSTextField(labelWithString: "Linker Bereich:"), colorWells[0], resetButton(0)],
-            [NSTextField(labelWithString: "Rechter Bereich:"), colorWells[1], resetButton(1)],
+            [NSTextField(labelWithString: L("Left pane:")), colorWells[0], resetButton(0)],
+            [NSTextField(labelWithString: L("Right pane:")), colorWells[1], resetButton(1)],
         ])
         colorGrid.rowSpacing = 10
         colorGrid.columnSpacing = 10
         colorGrid.column(at: 0).xPlacement = .trailing
         colorGrid.rowAlignment = .none
         for r in 0..<colorGrid.numberOfRows { colorGrid.row(at: r).yPlacement = .center }
-        let colorNote = NSTextField(labelWithString: "Färbt den ganzen Bereich (Dateiliste, Seitenleiste, Leisten). Wirkt sofort.")
+        let colorNote = NSTextField(labelWithString: L("Colors the whole pane (file list, sidebar, bars). Takes effect immediately."))
         colorNote.font = .systemFont(ofSize: 11)
         colorNote.textColor = .secondaryLabelColor
 
@@ -3104,9 +3110,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let status = RegisterEventHotKey(UInt32(kVK_ANSI_E), UInt32(cmdKey | optionKey), id,
                                          GetApplicationEventTarget(), 0, &hotKeyRef)
         if status != noErr {
-            NSLog("Skipper: globales Kürzel ⌥⌘E konnte nicht registriert werden (Status \(status)) – evtl. von einer anderen App belegt.")
+            NSLog("Skipper: global shortcut ⌥⌘E could not be registered (status \(status)) – possibly taken by another app.")
         } else {
-            NSLog("Skipper: globales Kürzel ⌥⌘E registriert.")
+            NSLog("Skipper: global shortcut ⌥⌘E registered.")
         }
     }
 
@@ -3212,97 +3218,97 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let backspace = String(Character(UnicodeScalar(8)))
 
         _ = submenu("Skipper", [
-            item("Über Skipper", #selector(NSApplication.orderFrontStandardAboutPanel(_:)), ""),
+            item(L("About Skipper"), #selector(NSApplication.orderFrontStandardAboutPanel(_:)), ""),
             .separator(),
-            item("Einstellungen …", #selector(AppDelegate.showSettings(_:)), ","),
+            item(L("Settings…"), #selector(AppDelegate.showSettings(_:)), ","),
             {
-                let t = item("Terminal-App", nil)
+                let t = item(L("Terminal App"), nil)
                 t.submenu = TerminalChooser.shared.makeMenu()
                 return t
             }(),
             .separator(),
-            item("Skipper ausblenden", #selector(NSApplication.hide(_:)), "h"),
-            item("Andere ausblenden", #selector(NSApplication.hideOtherApplications(_:)), "h", [.command, .option]),
+            item(L("Hide Skipper"), #selector(NSApplication.hide(_:)), "h"),
+            item(L("Hide Others"), #selector(NSApplication.hideOtherApplications(_:)), "h", [.command, .option]),
             .separator(),
-            item("Skipper beenden", #selector(NSApplication.terminate(_:)), "q"),
+            item(L("Quit Skipper"), #selector(NSApplication.terminate(_:)), "q"),
         ])
-        _ = submenu("Ablage", [
-            item("Neues Fenster", #selector(newWindow(_:)), "n"),
-            item("Neuer Tab", #selector(newTab(_:)), "t"),
-            item("Neuer Ordner", #selector(ExplorerController.newFolder(_:)), "n", [.command, .option]),
+        _ = submenu(L("File"), [
+            item(L("New Window"), #selector(newWindow(_:)), "n"),
+            item(L("New Tab"), #selector(newTab(_:)), "t"),
+            item(L("New Folder"), #selector(ExplorerController.newFolder(_:)), "n", [.command, .option]),
             {   // ⌘⇧N wie im Finder funktioniert weiterhin (sichtbar bei gedrückter ⇧-Taste)
-                let i = item("Neuer Ordner", #selector(ExplorerController.newFolder(_:)), "n", [.command, .shift])
+                let i = item(L("New Folder"), #selector(ExplorerController.newFolder(_:)), "n", [.command, .shift])
                 i.isAlternate = true
                 return i
             }(),
-            item("Neue Textdatei", #selector(ExplorerController.newTextFile(_:))),
+            item(L("New Text File"), #selector(ExplorerController.newTextFile(_:))),
             .separator(),
-            item("Öffnen", #selector(ExplorerController.openSelection), down),
-            item("Im Terminal öffnen", #selector(ExplorerController.openTerminal(_:)), "t", [.command, .option]),
-            item("Im Finder zeigen", #selector(ExplorerController.revealInFinder(_:)), "r", [.command, .shift]),
-            item("Zu Favoriten hinzufügen", #selector(ExplorerController.addToFavorites(_:)), "t", [.control, .command]),
-            item("Aktuellen Ordner zu Favoriten", #selector(ExplorerController.pinCurrent(_:)), "f", [.command, .option]),
+            item(L("Open"), #selector(ExplorerController.openSelection), down),
+            item(L("Open in Terminal"), #selector(ExplorerController.openTerminal(_:)), "t", [.command, .option]),
+            item(L("Show in Finder"), #selector(ExplorerController.revealInFinder(_:)), "r", [.command, .shift]),
+            item(L("Add to Favorites"), #selector(ExplorerController.addToFavorites(_:)), "t", [.control, .command]),
+            item(L("Add Current Folder to Favorites"), #selector(ExplorerController.pinCurrent(_:)), "f", [.command, .option]),
             .separator(),
-            item("Schließen", #selector(NSWindow.performClose(_:)), "w"),
+            item(L("Close"), #selector(NSWindow.performClose(_:)), "w"),
         ])
-        _ = submenu("Bearbeiten", [
-            item("Ausschneiden", #selector(NSText.cut(_:)), "x"),
-            item("Kopieren", #selector(NSText.copy(_:)), "c"),
-            item("Einfügen", #selector(NSText.paste(_:)), "v"),
-            item("Alles auswählen", #selector(NSText.selectAll(_:)), "a"),
+        _ = submenu(L("Edit"), [
+            item(L("Cut"), #selector(NSText.cut(_:)), "x"),
+            item(L("Copy"), #selector(NSText.copy(_:)), "c"),
+            item(L("Paste"), #selector(NSText.paste(_:)), "v"),
+            item(L("Select All"), #selector(NSText.selectAll(_:)), "a"),
             .separator(),
-            item("Pfad kopieren", #selector(ExplorerController.copyPath(_:)), "c", [.command, .option]),
-            item("Als Pfad kopieren (mit Anführungszeichen)", #selector(ExplorerController.copyPathQuoted(_:))),
-            item("Name kopieren", #selector(ExplorerController.copyName(_:))),
+            item(L("Copy Path"), #selector(ExplorerController.copyPath(_:)), "c", [.command, .option]),
+            item(L("Copy as Path (with Quotes)"), #selector(ExplorerController.copyPathQuoted(_:))),
+            item(L("Copy Name"), #selector(ExplorerController.copyName(_:))),
             .separator(),
-            item("Umbenennen", #selector(ExplorerController.beginRename), ""),
-            item("In den Papierkorb legen", #selector(ExplorerController.trashSelection), backspace),
+            item(L("Rename"), #selector(ExplorerController.beginRename), ""),
+            item(L("Move to Trash"), #selector(ExplorerController.trashSelection), backspace),
         ])
-        _ = submenu("Darstellung", [
-            item("Versteckte Dateien anzeigen", #selector(ExplorerController.toggleHidden(_:)), ".", [.command, .shift]),
-            item("Aktualisieren", #selector(ExplorerController.reload), "r"),
+        _ = submenu(L("View"), [
+            item(L("Show Hidden Files"), #selector(ExplorerController.toggleHidden(_:)), ".", [.command, .shift]),
+            item(L("Refresh"), #selector(ExplorerController.reload), "r"),
             .separator(),
-            item("Seitenleiste ein/aus (aktiver Bereich)", #selector(ExplorerController.toggleFavoritesSidebar(_:)), "s", [.control, .command]),
-            item("Ordner-Übersicht ein/aus (aktiver Bereich)", #selector(ExplorerController.toggleCockpit(_:)), "i", [.control, .command]),
-            item("Tab-Leiste einblenden", #selector(NSWindow.toggleTabBar(_:)), ""),
-            item("Vergrößern", #selector(AppDelegate.zoomIn(_:)), "+"),
+            item(L("Toggle Sidebar (Active Pane)"), #selector(ExplorerController.toggleFavoritesSidebar(_:)), "s", [.control, .command]),
+            item(L("Toggle Folder Overview (Active Pane)"), #selector(ExplorerController.toggleCockpit(_:)), "i", [.control, .command]),
+            item(L("Show Tab Bar"), #selector(NSWindow.toggleTabBar(_:)), ""),
+            item(L("Zoom In"), #selector(AppDelegate.zoomIn(_:)), "+"),
             {   // US-Tastatur: ⌘= (ohne Umschalt) wie in VS Code
-                let i = item("Vergrößern", #selector(AppDelegate.zoomIn(_:)), "=")
+                let i = item(L("Zoom In"), #selector(AppDelegate.zoomIn(_:)), "=")
                 i.isHidden = true
                 i.allowsKeyEquivalentWhenHidden = true
                 return i
             }(),
-            item("Verkleinern", #selector(AppDelegate.zoomOut(_:)), "-"),
-            item("Originalgröße", #selector(AppDelegate.zoomReset(_:)), "0"),
+            item(L("Zoom Out"), #selector(AppDelegate.zoomOut(_:)), "-"),
+            item(L("Actual Size"), #selector(AppDelegate.zoomReset(_:)), "0"),
             .separator(),
-            item("Vollbild ein/aus", #selector(AppDelegate.toggleFullScreenKey(_:)), "\r", [.command, .option]),
+            item(L("Toggle Full Screen"), #selector(AppDelegate.toggleFullScreenKey(_:)), "\r", [.command, .option]),
             .separator(),
-            item("Nur linker Bereich", #selector(ExplorerWindow.showLeftOnly(_:)), left, [.command, .option]),
-            item("Nur rechter Bereich", #selector(ExplorerWindow.showRightOnly(_:)), right, [.command, .option]),
-            item("Beide Bereiche (⌥⌘← + →)", #selector(ExplorerWindow.showBoth(_:)), "s", [.command, .option]),
+            item(L("Left Pane Only"), #selector(ExplorerWindow.showLeftOnly(_:)), left, [.command, .option]),
+            item(L("Right Pane Only"), #selector(ExplorerWindow.showRightOnly(_:)), right, [.command, .option]),
+            item(L("Both Panes (⌥⌘← + →)"), #selector(ExplorerWindow.showBoth(_:)), "s", [.command, .option]),
             .separator(),
-            item("Fokus: linker Bereich", #selector(ExplorerWindow.focusLeftPane(_:)), left, [.control, .option, .command]),
-            item("Fokus: rechter Bereich", #selector(ExplorerWindow.focusRightPane(_:)), right, [.control, .option, .command]),
+            item(L("Focus: Left Pane"), #selector(ExplorerWindow.focusLeftPane(_:)), left, [.control, .option, .command]),
+            item(L("Focus: Right Pane"), #selector(ExplorerWindow.focusRightPane(_:)), right, [.control, .option, .command]),
         ])
-        _ = submenu("Gehe zu", [
-            item("Zurück", #selector(ExplorerController.goBack), "["),
-            item("Vorwärts", #selector(ExplorerController.goForward), "]"),
-            item("Übergeordneter Ordner", #selector(ExplorerController.goUp), up),
+        _ = submenu(L("Go"), [
+            item(L("Back"), #selector(ExplorerController.goBack), "["),
+            item(L("Forward"), #selector(ExplorerController.goForward), "]"),
+            item(L("Enclosing Folder"), #selector(ExplorerController.goUp), up),
             .separator(),
-            item("Adressleiste", #selector(ExplorerController.focusAddress(_:)), "l"),
-            item("Suchen", #selector(ExplorerController.focusSearch(_:)), "f"),
+            item(L("Address Bar"), #selector(ExplorerController.focusAddress(_:)), "l"),
+            item(L("Search"), #selector(ExplorerController.focusSearch(_:)), "f"),
             .separator(),
-            item("Benutzerordner", #selector(ExplorerController.goHome(_:)), "h", [.command, .shift]),
-            item("Schreibtisch", #selector(ExplorerController.goDesktop(_:)), "d", [.command, .shift]),
-            item("Downloads", #selector(ExplorerController.goDownloads(_:)), "l", [.command, .option]),
-            item("Programme", #selector(ExplorerController.goApplications(_:)), "a", [.command, .shift]),
+            item(L("Home"), #selector(ExplorerController.goHome(_:)), "h", [.command, .shift]),
+            item(L("Desktop"), #selector(ExplorerController.goDesktop(_:)), "d", [.command, .shift]),
+            item(L("Downloads"), #selector(ExplorerController.goDownloads(_:)), "l", [.command, .option]),
+            item(L("Applications"), #selector(ExplorerController.goApplications(_:)), "a", [.command, .shift]),
         ])
-        let win = submenu("Fenster", [
-            item("Im Dock ablegen", #selector(NSWindow.performMiniaturize(_:)), "m"),
-            item("Zoomen", #selector(NSWindow.performZoom(_:)), ""),
+        let win = submenu(L("Window"), [
+            item(L("Minimize"), #selector(NSWindow.performMiniaturize(_:)), "m"),
+            item(L("Zoom"), #selector(NSWindow.performZoom(_:)), ""),
             .separator(),
-            item("Vorheriger Tab", #selector(NSWindow.selectPreviousTab(_:)), "{", [.command, .shift]),
-            item("Nächster Tab", #selector(NSWindow.selectNextTab(_:)), "}", [.command, .shift]),
+            item(L("Previous Tab"), #selector(NSWindow.selectPreviousTab(_:)), "{", [.command, .shift]),
+            item(L("Next Tab"), #selector(NSWindow.selectNextTab(_:)), "}", [.command, .shift]),
         ])
         NSApp.mainMenu = main
         NSApp.windowsMenu = win

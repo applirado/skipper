@@ -14,6 +14,8 @@ swiftc -O -swift-version 5 -target "$(uname -m)-apple-macos12.0" \
   Sources/main.swift -o "$APP/Contents/MacOS/Skipper"
 
 cp Info.plist "$APP/Contents/Info.plist"
+# Übersetzungen (Resources/<Sprache>.lproj)
+cp -R Resources/*.lproj "$APP/Contents/Resources/"
 
 # App-Icon aus dem Finder-Ordnersymbol erzeugen (optional)
 if command -v sips >/dev/null && [ -f /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericFolderIcon.icns ]; then

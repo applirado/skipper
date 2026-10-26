@@ -1,0 +1,5 @@
+"NSDesktopFolderUsageDescription" = "Skipper zeigt die Dateien auf deinem Schreibtisch an.";
+"NSDocumentsFolderUsageDescription" = "Skipper zeigt die Dateien in deinem Dokumente-Ordner an.";
+"NSDownloadsFolderUsageDescription" = "Skipper zeigt die Dateien in deinem Downloads-Ordner an.";
+"NSRemovableVolumesUsageDescription" = "Skipper zeigt Dateien auf externen Laufwerken an.";
+"NSNetworkVolumesUsageDescription" = "Skipper zeigt Dateien auf Netzlaufwerken an.";
