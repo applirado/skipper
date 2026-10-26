@@ -1,0 +1,6 @@
+# Build-Ergebnis
+*.app/
+# macOS
+.DS_Store
+# Rechnerspezifisch: gewählte Signatur-Identität (wird von setup.sh angelegt)
+.signing-identity

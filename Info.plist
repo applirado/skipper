@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Skipper</string>
+  <key>CFBundleDisplayName</key><string>Skipper</string>
+  <key>CFBundleExecutable</key><string>Skipper</string>
+  <key>CFBundleIdentifier</key><string>com.aioxio.explorer</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>1.0</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>LSMinimumSystemVersion</key><string>12.0</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSPrincipalClass</key><string>NSApplication</string>
+  <key>CFBundleDocumentTypes</key>
+  <array><dict>
+    <key>CFBundleTypeRole</key><string>Viewer</string>
+    <key>LSItemContentTypes</key><array><string>public.folder</string></array>
+    <key>LSHandlerRank</key><string>Alternate</string>
+  </dict></array>
+  <key>NSDesktopFolderUsageDescription</key><string>Skipper zeigt die Dateien auf deinem Schreibtisch an.</string>
+  <key>NSDocumentsFolderUsageDescription</key><string>Skipper zeigt die Dateien in deinem Dokumente-Ordner an.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Skipper zeigt die Dateien in deinem Downloads-Ordner an.</string>
+  <key>NSRemovableVolumesUsageDescription</key><string>Skipper zeigt Dateien auf externen Laufwerken an.</string>
+  <key>NSNetworkVolumesUsageDescription</key><string>Skipper zeigt Dateien auf Netzlaufwerken an.</string>
+</dict>
+</plist>
