@@ -22,6 +22,9 @@ Signing" certificate in the login keychain. With a stable identity, macOS rememb
 permissions such as access to Desktop, Documents or Downloads across builds. Without the setup,
 `build.sh` signs ad hoc and macOS asks again after every build.
 
+The app icon is drawn in `Design/AppIcon.svg`. After changing it, run `./make-icon.sh` (needs
+`rsvg-convert`, `brew install librsvg`) to regenerate `Resources/AppIcon.icns`.
+
 `build.sh --install` quits a running Skipper, replaces the copy in `/Applications` and starts it.
 
 ## Keyboard shortcuts

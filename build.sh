@@ -17,11 +17,8 @@ cp Info.plist "$APP/Contents/Info.plist"
 # Übersetzungen (Resources/<Sprache>.lproj)
 cp -R Resources/*.lproj "$APP/Contents/Resources/"
 
-# App-Icon aus dem Finder-Ordnersymbol erzeugen (optional)
-if command -v sips >/dev/null && [ -f /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericFolderIcon.icns ]; then
-  cp /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericFolderIcon.icns "$APP/Contents/Resources/AppIcon.icns"
-  /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP/Contents/Info.plist" >/dev/null 2>&1 || true
-fi
+# App-Icon (aus Design/AppIcon.svg, neu erzeugen mit ./make-icon.sh)
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
 # Signieren: feste Identität aus .signing-identity (siehe setup.sh), sonst ad-hoc
 IDENTITY="-"

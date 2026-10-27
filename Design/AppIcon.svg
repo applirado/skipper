@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx=".5" cy=".42" r=".75">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#eef6ff"/><stop offset="1" stop-color="#cfe5ff"/>
+    </radialGradient>
+    <linearGradient id="back" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f6bf2"/><stop offset="1" stop-color="#0a35c9"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2=".8" y2="1">
+      <stop offset="0" stop-color="#4cc4ff"/><stop offset=".35" stop-color="#1f8af8"/><stop offset="1" stop-color="#0a45e0"/>
+    </linearGradient>
+    <linearGradient id="sail" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#f4f7ff"/><stop offset="1" stop-color="#c9d8ff"/>
+    </linearGradient>
+    <linearGradient id="hull" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d4e0ff"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2=".3">
+      <stop offset="0" stop-color="#7fdcff"/><stop offset=".5" stop-color="#45b6fb"/><stop offset="1" stop-color="#2a8ff5"/>
+    </linearGradient>
+    <linearGradient id="deep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a7bf6"/><stop offset="1" stop-color="#1450e6"/>
+    </linearGradient>
+    <clipPath id="sq"><rect x="100" y="100" width="824" height="824" rx="185"/></clipPath>
+    <clipPath id="art"><rect x="150" y="150" width="724" height="724" rx="130"/></clipPath>
+    <filter id="sh" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0b3cd6" flood-opacity=".22"/>
+    </filter>
+    <filter id="sailsh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="-6" dy="10" stdDeviation="12" flood-color="#06247a" flood-opacity=".35"/>
+    </filter>
+  </defs>
+  <g filter="url(#sh)"><rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/></g>
+  <rect x="101.5" y="101.5" width="821" height="821" rx="184" fill="none" stroke="#ffffff" stroke-width="3" opacity=".9"/>
+  <g clip-path="url(#art)">
+    <!-- Ordner hinten mit Reiter -->
+    <path d="M150 260 Q150 205 205 205 L440 205 Q468 205 484 228 L508 262 Q520 280 545 280 L820 280 Q874 280 874 334 L874 900 L150 900 Z" fill="url(#back)"/>
+    <!-- Ordner vorne -->
+    <path d="M178 368 Q178 330 216 330 L874 330 L874 900 L178 900 Z" fill="url(#front)"/>
+    <path d="M178 560 Q330 380 560 336 L216 330 Q178 330 178 368 Z" fill="#ffffff" opacity=".07"/>
+    <!-- Lücke zwischen Segel und Rumpf -->
+    <path d="M470 692 L860 612 L898 604 L898 650 Q700 676 486 712 Z" fill="#0a2a9a"/>
+    <!-- Segel -->
+    <path d="M636 186 C604 380 560 560 470 692 L860 612 C880 480 800 310 636 186 Z" fill="url(#sail)" filter="url(#sailsh)"/>
+    <!-- Rumpf -->
+    <path d="M486 712 Q700 676 898 650 Q884 750 826 806 Q650 768 486 712 Z" fill="url(#hull)"/>
+    <!-- Welle -->
+    <path d="M100 720 C180 640 330 650 460 720 C580 790 680 850 790 840 C850 834 890 810 924 790 L924 1000 L100 1000 Z" fill="url(#deep)"/>
+    <path d="M100 720 C180 640 330 650 460 720 C580 790 680 850 790 840 C850 834 890 810 924 790 L924 866 C880 904 800 924 720 914 C600 898 520 842 420 792 C300 738 190 762 100 822 Z" fill="url(#wave)"/>
+    <path d="M152 692 C230 652 340 662 450 716" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity=".45"/>
+  </g>
+</svg>
