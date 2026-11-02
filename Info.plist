@@ -21,6 +21,7 @@
     <key>LSItemContentTypes</key><array><string>public.folder</string></array>
     <key>LSHandlerRank</key><string>Alternate</string>
   </dict></array>
+  <key>NSAppleEventsUsageDescription</key><string>Skipper asks Finder to show files when you choose “Show in Finder”.</string>
   <key>NSDesktopFolderUsageDescription</key><string>Skipper shows the files on your Desktop.</string>
   <key>NSDocumentsFolderUsageDescription</key><string>Skipper shows the files in your Documents folder.</string>
   <key>NSDownloadsFolderUsageDescription</key><string>Skipper shows the files in your Downloads folder.</string>

@@ -3,3 +3,4 @@
 "NSDownloadsFolderUsageDescription" = "Skipper shows the files in your Downloads folder.";
 "NSRemovableVolumesUsageDescription" = "Skipper shows files on external drives.";
 "NSNetworkVolumesUsageDescription" = "Skipper shows files on network drives.";
+"NSAppleEventsUsageDescription" = "Skipper asks Finder to show files when you choose “Show in Finder”.";

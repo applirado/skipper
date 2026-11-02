@@ -1615,8 +1615,19 @@ final class ExplorerController: NSViewController, NSTableViewDataSource, NSTable
     }
 
     @objc func revealInFinder(_ sender: Any?) {
-        let urls = selectedURLs
-        NSWorkspace.shared.activateFileViewerSelecting(urls.isEmpty ? [currentDir] : urls)
+        let urls = selectedURLs.isEmpty ? [currentDir] : selectedURLs
+        // Ist Skipper der Standard-Datei-Manager, landete activateFileViewerSelecting bei Skipper selbst
+        guard DefaultFileManager.isSkipper else { NSWorkspace.shared.activateFileViewerSelecting(urls); return }
+        let files = urls.map {
+            "POSIX file \"" + $0.path.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
+        }.joined(separator: ", ")
+        var error: NSDictionary?
+        NSAppleScript(source: "tell application \"Finder\"\nreveal {\(files)}\nactivate\nend tell")?.executeAndReturnError(&error)
+        if error != nil {   // z. B. keine Erlaubnis, Finder zu steuern → wenigstens den Ordner in Finder öffnen
+            let dir = selectedURLs.isEmpty ? currentDir : urls[0].deletingLastPathComponent()
+            NSWorkspace.shared.open([dir], withApplicationAt: DefaultFileManager.finderURL,
+                                    configuration: NSWorkspace.OpenConfiguration())
+        }
     }
 
     // MARK: Kopieren / Ausschneiden / Einfügen
@@ -2894,6 +2905,33 @@ enum PaneColors {
     }
 }
 
+/// Skipper als Standard-Datei-Manager: Ordner, die andere Apps öffnen (public.folder), und deren
+/// „Im Finder zeigen“ (NSFileViewer) gehen an Skipper. Schreibtisch, Papierkorb und Finder selbst bleiben bei Finder.
+enum DefaultFileManager {
+    static let finderURL = URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app")
+    private static let folderType = "public.folder" as CFString
+    private static let viewerKey = "NSFileViewer" as CFString
+    private static var bundleID: String { Bundle.main.bundleIdentifier ?? "com.aioxio.explorer" }
+
+    static var isSkipper: Bool {
+        let handler = LSCopyDefaultRoleHandlerForContentType(folderType, .all)?.takeRetainedValue() as String?
+        let viewer = CFPreferencesCopyValue(viewerKey, kCFPreferencesAnyApplication, kCFPreferencesCurrentUser,
+                                            kCFPreferencesAnyHost) as? String
+        return [handler, viewer].contains { $0?.lowercased() == bundleID.lowercased() }
+    }
+
+    /// Ein- oder ausschalten; false, wenn macOS die Zuordnung für Ordner nicht übernommen hat.
+    /// Bewusst die alte LaunchServices-Funktion: NSWorkspace.setDefaultApplication meldet für Ordner Erfolg, ändert aber nichts.
+    @discardableResult
+    static func set(_ on: Bool) -> Bool {
+        let status = LSSetDefaultRoleHandlerForContentType(folderType, .all, (on ? bundleID : "com.apple.finder") as CFString)
+        CFPreferencesSetValue(viewerKey, on ? bundleID as CFString : nil, kCFPreferencesAnyApplication,
+                              kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+        CFPreferencesSynchronize(kCFPreferencesAnyApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+        return status == noErr
+    }
+}
+
 final class SettingsWindowController: NSWindowController {
     static let shared = SettingsWindowController()
 
@@ -2967,19 +3005,43 @@ final class SettingsWindowController: NSWindowController {
         colorNote.font = .systemFont(ofSize: 11)
         colorNote.textColor = .secondaryLabelColor
 
+        // Standard-Datei-Manager
+        let defaultHeading = NSTextField(labelWithString: L("Default File Manager"))
+        defaultHeading.font = .boldSystemFont(ofSize: 13)
+        defaultCheckbox.title = L("Use Skipper instead of Finder to open folders")
+        defaultCheckbox.target = self
+        defaultCheckbox.action = #selector(defaultChanged(_:))
+        let defaultNote = NSTextField(labelWithString: L("Applies to folders opened by other apps and to their “Show in Finder”.\nThe desktop, Trash and Finder itself stay with Finder. Running apps may need a restart."))
+        defaultNote.font = .systemFont(ofSize: 11)
+        defaultNote.textColor = .secondaryLabelColor
+
         let sep = NSBox(); sep.boxType = .separator
-        let stack = NSStackView(views: [heading, grid, note, sep, colorHeading, colorGrid, colorNote])
+        let sep2 = NSBox(); sep2.boxType = .separator
+        let stack = NSStackView(views: [heading, grid, note, sep, colorHeading, colorGrid, colorNote,
+                                        sep2, defaultHeading, defaultCheckbox, defaultNote])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 12
         stack.edgeInsets = NSEdgeInsets(top: 20, left: 24, bottom: 20, right: 24)
-        sep.translatesAutoresizingMaskIntoConstraints = false
-        sep.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -48).isActive = true
+        for s in [sep, sep2] {
+            s.translatesAutoresizingMaskIntoConstraints = false
+            s.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -48).isActive = true
+        }
         w.contentView = stack
         w.setContentSize(NSSize(width: 520, height: stack.fittingSize.height))
     }
 
     private let colorWells = [NSColorWell(), NSColorWell()]
+    private let defaultCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
+
+    @objc private func defaultChanged(_ sender: NSButton) {
+        if !DefaultFileManager.set(sender.state == .on) {
+            NSSound.beep()
+            NSAlert(error: NSError(domain: NSCocoaErrorDomain, code: NSFeatureUnsupportedError, userInfo:
+                [NSLocalizedDescriptionKey: L("The default file manager could not be changed.")])).runModal()
+        }
+        sender.state = DefaultFileManager.isSkipper ? .on : .off
+    }
 
     @objc private func colorChanged(_ sender: NSColorWell) {
         PaneColors.set(sender.tag, sender.color)
@@ -2995,6 +3057,7 @@ final class SettingsWindowController: NSWindowController {
 
     @objc func show() {
         for i in 0..<2 { colorWells[i].color = PaneColors.color(i) ?? .controlBackgroundColor }
+        defaultCheckbox.state = DefaultFileManager.isSkipper ? .on : .off
         modePopup.selectItem(at: modeTitles.firstIndex { $0.0 == StartPrefs.windowMode } ?? 0)
         panesPopup.selectItem(at: panesTitles.firstIndex { $0.0 == StartPrefs.panes } ?? 0)
         if window?.isVisible != true { window?.center() }
@@ -3030,15 +3093,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    // Ordner aufs Dock-Icon ziehen → öffnen
+    // Ordner aufs Dock-Icon ziehen, `open <Ordner>` und – als Standard-Datei-Manager – „Im Finder zeigen“
+    // anderer Apps: Ordner öffnen, bei Dateien den übergeordneten Ordner mit markierter Datei
     func application(_ application: NSApplication, open urls: [URL]) {
+        var reveal: [URL: [URL]] = [:]
         for u in urls {
             if FileOps.isDir(u) && !NSWorkspace.shared.isFilePackage(atPath: u.path) {
                 openWindow(at: u)
             } else {
-                openWindow(at: u.deletingLastPathComponent())
+                reveal[u.deletingLastPathComponent(), default: []].append(u)
             }
         }
+        for (dir, files) in reveal {
+            openWindow(at: dir).panes.first?.navigate(to: dir, addHistory: false, select: files)
+        }
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @discardableResult

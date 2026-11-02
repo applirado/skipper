@@ -158,3 +158,7 @@
 "“%@” is already a favorite" = "„%@“ ist bereits ein Favorit";
 "“%@” is not a folder or does not exist." = "„%@“ ist kein Ordner oder existiert nicht.";
 "≥ %@ · calculating …" = "≥ %@ · rechnet …";
+"Default File Manager" = "Standard-Datei-Manager";
+"Use Skipper instead of Finder to open folders" = "Ordner mit Skipper statt Finder öffnen";
+"Applies to folders opened by other apps and to their “Show in Finder”.\nThe desktop, Trash and Finder itself stay with Finder. Running apps may need a restart." = "Gilt für Ordner, die andere Apps öffnen, und für deren „Im Finder zeigen“.\nSchreibtisch, Papierkorb und Finder selbst bleiben bei Finder. Laufende Apps evtl. neu starten.";
+"The default file manager could not be changed." = "Der Standard-Datei-Manager konnte nicht geändert werden.";

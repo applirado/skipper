@@ -102,6 +102,15 @@ Ctrl and ⌘ both work for the Windows-style shortcuts.
 - Date, type, size, files and folder columns size themselves to their longest entry; the name column gets the remaining space.
 - Settings (⌘,) define how the first window appears: normal, maximized or full screen, with one or both panes.
 
+## Default file manager
+
+Under Settings › Default File Manager, Skipper can take over from Finder for folders that other apps
+open (for example `open ~/Downloads` or a download folder in the browser) and for their "Show in
+Finder". Files are then shown selected in their folder. The desktop, Trash and Finder's own windows
+stay with Finder, and apps that are already running may need a restart. Skipper's own "Show in
+Finder" still goes to Finder; the first time, macOS asks for permission to control Finder. Turn the
+setting off before deleting Skipper.
+
 ## Translations
 
 The source strings in `Sources/main.swift` are English and wrapped in `L("…")`. Translations live
